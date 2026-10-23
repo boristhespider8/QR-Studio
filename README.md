@@ -5,6 +5,7 @@ A modern, privacy-first, client-side web application to generate custom QR Codes
 ![QR Studio Preview](https://img.shields.io/badge/Client--Side-100%25-indigo?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-teal?style=flat-square)
+[![Dokumentasi Indonesia](https://img.shields.io/badge/Dokumentasi-Lengkap%20(ID)-success?style=flat-square)](./DOKUMENTASI.md)
 
 ---
 

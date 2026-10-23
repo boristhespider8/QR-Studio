@@ -2,44 +2,324 @@
 
 @layer base {
   :root {
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --win-bg: #D4D0C8;
+    --win-desktop: #008080;
+    --win-title-start: #0A246A;
+    --win-title-end: #A6CAF0;
+    --win-title-inactive-start: #808080;
+    --win-title-inactive-end: #C0C0C0;
+    --win-text: #000000;
+    --win-hilite: #FFFFFF;
+    --win-light: #DFDFDF;
+    --win-shadow: #808080;
+    --win-dkshadow: #000000;
+    --win-selection: #0A246A;
+    --win-tooltip-bg: #FFFFE1;
+  }
+
+  * {
+    border-radius: 0px !important;
+    box-sizing: border-box;
   }
 
   body {
-    font-family: var(--font-sans);
-    background-color: #f8fafc;
-    color: #0f172a;
-    -webkit-font-smoothing: antialiased;
+    background-color: var(--win-desktop);
+    color: var(--win-text);
+    font-family: 'Tahoma', 'MS Sans Serif', 'Segoe UI', 'Verdana', sans-serif;
+    font-size: 11px;
+    line-height: 1.3;
+    -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    overflow-x: hidden;
   }
 
-  code, pre, kbd {
-    font-family: var(--font-mono);
+  code, pre, kbd, .font-mono {
+    font-family: 'Lucida Console', 'Courier New', monospace;
   }
 }
 
-/* Custom scrollbar */
+/* 3D Bevel Primitives - Windows 2000 / 98 Style */
+.win-window {
+  background-color: var(--win-bg);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-dkshadow);
+  border-bottom: 2px solid var(--win-dkshadow);
+  box-shadow: inset 1px 1px 0px var(--win-hilite), inset -1px -1px 0px var(--win-shadow);
+}
+
+.win-raised, .win-button {
+  background-color: var(--win-bg);
+  color: #000000;
+  border-top: 1px solid var(--win-hilite);
+  border-left: 1px solid var(--win-hilite);
+  border-right: 1px solid var(--win-dkshadow);
+  border-bottom: 1px solid var(--win-dkshadow);
+  box-shadow: inset 1px 1px 0px var(--win-light), inset -1px -1px 0px var(--win-shadow);
+  cursor: pointer;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 11px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.win-button:hover:not(:disabled) {
+  filter: brightness(1.03);
+}
+
+.win-button:active:not(:disabled), .win-button-pressed {
+  border-top: 1px solid var(--win-dkshadow) !important;
+  border-left: 1px solid var(--win-dkshadow) !important;
+  border-right: 1px solid var(--win-hilite) !important;
+  border-bottom: 1px solid var(--win-hilite) !important;
+  box-shadow: inset 1px 1px 0px var(--win-shadow) !important;
+  padding-top: 4px !important;
+  padding-left: 9px !important;
+  padding-right: 7px !important;
+  padding-bottom: 2px !important;
+}
+
+.win-button:disabled {
+  color: var(--win-shadow);
+  text-shadow: 1px 1px 0px var(--win-hilite);
+  cursor: default;
+}
+
+.win-button:focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: -4px;
+}
+
+.win-sunken {
+  background-color: #FFFFFF;
+  border-top: 1px solid var(--win-shadow);
+  border-left: 1px solid var(--win-shadow);
+  border-right: 1px solid var(--win-hilite);
+  border-bottom: 1px solid var(--win-hilite);
+  box-shadow: inset 1px 1px 0px var(--win-dkshadow), inset -1px -1px 0px var(--win-light);
+}
+
+.win-sunken-dark {
+  background-color: #001100;
+  color: #00FF66;
+  border-top: 1px solid var(--win-shadow);
+  border-left: 1px solid var(--win-shadow);
+  border-right: 1px solid var(--win-hilite);
+  border-bottom: 1px solid var(--win-hilite);
+  box-shadow: inset 1px 1px 0px var(--win-dkshadow), inset -1px -1px 0px var(--win-light);
+}
+
+.win-status-pane {
+  background-color: var(--win-bg);
+  border-top: 1px solid var(--win-shadow);
+  border-left: 1px solid var(--win-shadow);
+  border-right: 1px solid var(--win-hilite);
+  border-bottom: 1px solid var(--win-hilite);
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+.win-groupbox {
+  border: 1px solid var(--win-shadow);
+  box-shadow: 1px 1px 0px var(--win-hilite), inset 1px 1px 0px var(--win-hilite);
+  padding: 8px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+.win-groupbox > legend {
+  padding: 0 4px;
+  margin-left: 6px;
+  font-weight: bold;
+  color: #000000;
+  font-size: 11px;
+}
+
+.win-titlebar {
+  background: linear-gradient(90deg, var(--win-title-start) 0%, var(--win-title-end) 100%);
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 3px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  letter-spacing: 0.3px;
+}
+
+.win-titlebar-btn {
+  width: 16px;
+  height: 14px;
+  background-color: var(--win-bg);
+  border-top: 1px solid var(--win-hilite);
+  border-left: 1px solid var(--win-hilite);
+  border-right: 1px solid var(--win-dkshadow);
+  border-bottom: 1px solid var(--win-dkshadow);
+  box-shadow: inset 1px 1px 0px var(--win-light), inset -1px -1px 0px var(--win-shadow);
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.win-titlebar-btn:active {
+  border-top: 1px solid var(--win-dkshadow);
+  border-left: 1px solid var(--win-dkshadow);
+  border-right: 1px solid var(--win-hilite);
+  border-bottom: 1px solid var(--win-hilite);
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+/* Tabs */
+.win-tab-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding-left: 4px;
+  border-bottom: 1px solid var(--win-shadow);
+  box-shadow: 0 1px 0 var(--win-hilite);
+}
+
+.win-tab {
+  background-color: var(--win-bg);
+  border-top: 1px solid var(--win-hilite);
+  border-left: 1px solid var(--win-hilite);
+  border-right: 1px solid var(--win-dkshadow);
+  border-bottom: 1px solid var(--win-shadow);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: normal;
+  color: #000000;
+  cursor: pointer;
+  position: relative;
+  top: 1px;
+}
+
+.win-tab:hover {
+  background-color: #E2DFD9;
+}
+
+.win-tab-active {
+  font-weight: bold;
+  border-bottom: 1px solid var(--win-bg) !important;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  top: 0px;
+  z-index: 2;
+  box-shadow: inset 1px 1px 0px var(--win-light);
+}
+
+/* Menu Bar */
+.win-menubar {
+  display: flex;
+  align-items: center;
+  background-color: var(--win-bg);
+  border-bottom: 1px solid var(--win-shadow);
+  box-shadow: 0 1px 0 var(--win-hilite);
+  padding: 1px 4px;
+  font-size: 11px;
+}
+
+.win-menu-item {
+  padding: 2px 6px;
+  cursor: pointer;
+  color: #000000;
+}
+
+.win-menu-item:hover, .win-menu-item-active {
+  background-color: var(--win-selection);
+  color: #FFFFFF;
+}
+
+/* Classic scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background-color: #EBE8E1;
+  box-shadow: inset 1px 1px 0px var(--win-shadow);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background-color: var(--win-bg);
+  border-top: 1px solid var(--win-hilite);
+  border-left: 1px solid var(--win-hilite);
+  border-right: 1px solid var(--win-dkshadow);
+  border-bottom: 1px solid var(--win-dkshadow);
+  box-shadow: inset 1px 1px 0px var(--win-light), inset -1px -1px 0px var(--win-shadow);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+::-webkit-scrollbar-thumb:active {
+  background-color: #C0BCB4;
 }
 
-/* Focus styles for keyboard accessibility */
-:focus-visible {
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
+/* Windows 2000 resize grip */
+.win-resize-grip {
+  width: 12px;
+  height: 12px;
+  background: 
+    linear-gradient(135deg, transparent 50%, var(--win-shadow) 50%, var(--win-shadow) 60%, transparent 60%),
+    linear-gradient(135deg, transparent 65%, var(--win-hilite) 65%, var(--win-hilite) 75%, transparent 75%),
+    linear-gradient(135deg, transparent 75%, var(--win-shadow) 75%, var(--win-shadow) 85%, transparent 85%),
+    linear-gradient(135deg, transparent 90%, var(--win-hilite) 90%, var(--win-hilite) 100%, transparent 100%);
+  background-size: 100% 100%;
 }
+
+/* WinRAR & Windows Classic Progress Bar */
+.win-progress-well {
+  background-color: #FFFFFF;
+  border-top: 1px solid var(--win-shadow);
+  border-left: 1px solid var(--win-shadow);
+  border-right: 1px solid var(--win-hilite);
+  border-bottom: 1px solid var(--win-hilite);
+  box-shadow: inset 1px 1px 0px var(--win-dkshadow);
+  height: 16px;
+  padding: 1px;
+  overflow: hidden;
+  position: relative;
+}
+
+.win-progress-fill-blue {
+  background: repeating-linear-gradient(
+    90deg,
+    #0A246A 0px,
+    #0A246A 8px,
+    #FFFFFF 8px,
+    #FFFFFF 10px
+  );
+  height: 100%;
+  transition: width 0.15s ease-out;
+}
+
+.win-progress-fill-green {
+  background: repeating-linear-gradient(
+    90deg,
+    #008000 0px,
+    #008000 8px,
+    #FFFFFF 8px,
+    #FFFFFF 10px
+  );
+  height: 100%;
+  transition: width 0.15s ease-out;
+}
+
+/* WinRAR dialog overlay */
+.win-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(1px);
+}
+

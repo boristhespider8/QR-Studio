@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
 import type { DragEvent, ChangeEvent } from 'react';
-import { UploadCloud, Image as ImageIcon, FileCheck, AlertTriangle } from 'lucide-react';
 
 interface UploadDropzoneProps {
   onFileSelected: (file: File) => void;
@@ -20,12 +19,12 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileSelected, 
     const hasValidExt = /\.(png|jpe?g|webp)$/i.test(file.name);
 
     if (!hasValidMime && !hasValidExt) {
-      setClientError('Invalid file format. Please upload a PNG, JPG, JPEG, or WEBP image.');
+      setClientError('Invalid file signature. Supported raster formats: PNG, JPG, JPEG, WEBP.');
       return;
     }
 
     if (file.size > 15 * 1024 * 1024) {
-      setClientError('File size is too large (maximum 15 MB).');
+      setClientError('Buffer overflow: File size exceeds 15 MB threshold.');
       return;
     }
 
@@ -63,28 +62,27 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileSelected, 
     if (e.target.files && e.target.files.length > 0) {
       const selected = e.target.files[0];
       validateAndPass(selected);
-      // reset value so re-selecting same file fires change event
       e.target.value = '';
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Dropzone container */}
+    <fieldset className="win-groupbox bg-[#D4D0C8] p-3">
+      <legend>TWAIN Image Acquisition Bay</legend>
+
+      {/* Target Drop Zone */}
       <div
         id="qr-dropzone"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !isProcessing && fileInputRef.current?.click()}
-        className={`relative rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center cursor-pointer transition-all ${
-          isDragOver
-            ? 'border-indigo-500 bg-indigo-50/60 scale-[1.01]'
-            : 'border-slate-300 hover:border-indigo-400 bg-white hover:bg-slate-50/50'
+        className={`win-sunken relative p-8 text-center cursor-pointer transition-colors ${
+          isDragOver ? 'bg-[#FFFFE1] border-2 border-black' : 'bg-white hover:bg-[#F9F8F5]'
         } ${isProcessing ? 'pointer-events-none opacity-60' : ''}`}
         role="button"
         tabIndex={0}
-        aria-label="Upload QR code image area"
+        aria-label="Acquisition Dropzone"
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -94,70 +92,58 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onFileSelected, 
       >
         <input
           ref={fileInputRef}
-          id="qr-file-input"
           type="file"
           accept="image/png,image/jpeg,image/jpg,image/webp"
           onChange={handleFileInputChange}
           className="hidden"
-          disabled={isProcessing}
+          id="qr-file-input"
+          aria-hidden="true"
         />
 
-        {/* Dropzone icon */}
-        <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-4 text-indigo-600 shadow-xs transition-transform group-hover:scale-105">
-          <UploadCloud className="w-8 h-8 stroke-[1.8]" />
-        </div>
+        {/* Technical Target Box */}
+        <div className="flex flex-col items-center justify-center space-y-2">
+          {/* Retro Flatbed Scanner Icon */}
+          <div className="w-12 h-12 bg-[#D4D0C8] border-2 border-t-[#FFFFFF] border-l-[#FFFFFF] border-r-[#808080] border-b-[#808080] flex items-center justify-center font-mono font-bold text-sm shadow-xs">
+            📷 2D
+          </div>
 
-        {/* Text descriptions */}
-        <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1">
-          Drop your QR image here
-        </h3>
-        <p className="text-xs sm:text-sm text-slate-500 mb-5">
-          or click to browse files from your device
-        </p>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-black font-sans">
+              Drag &amp; Drop Image File Here, or Click to Browse Disk
+            </p>
+            <p className="text-[11px] text-slate-600 font-mono">
+              [PNG, JPG, JPEG, WEBP | Max Buffer: 15 MB]
+            </p>
+          </div>
 
-        {/* Browse Button */}
-        <button
-          id="btn-browse-files"
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            fileInputRef.current?.click();
-          }}
-          disabled={isProcessing}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-100 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          <ImageIcon className="w-4 h-4" />
-          <span>Browse Files</span>
-        </button>
-
-
-        {/* Supported formats info */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 font-medium">
-          <span className="flex items-center gap-1">
-            <FileCheck className="w-3.5 h-3.5 text-slate-400" />
-            Supports PNG, JPG, JPEG, WEBP
-          </span>
-          <span>•</span>
-          <span>Up to 15 MB</span>
+          <button
+            type="button"
+            className="win-button text-xs font-bold px-4 py-1.5 mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+          >
+            📁 Browse Local Disk...
+          </button>
         </div>
       </div>
 
-      {/* Client-side validation alert */}
+      {/* Quick Clipboard Paste Callout */}
+      <div className="win-sunken bg-[#FFFFE1] p-2 mt-2 flex items-center justify-between text-[11px] border border-[#000000]">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-[#0A246A]">[!] CLIPBOARD ACCELERATOR:</span>
+          <span>Press <kbd className="font-mono bg-white px-1 border border-[#808080]">Ctrl</kbd> + <kbd className="font-mono bg-white px-1 border border-[#808080]">V</kbd> to decode directly from screenshot / Snipping Tool.</span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono">No disk save required</span>
+      </div>
+
+      {/* Error Callout */}
       {clientError && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 animate-in fade-in">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{clientError}</span>
+        <div className="win-sunken bg-[#FFEFEF] border border-[#AA0000] p-2 mt-2 text-[#AA0000] text-xs font-bold">
+          [X] ACQUISITION REJECTED: {clientError}
         </div>
       )}
-
-      {/* Helpful Instructions Card */}
-      <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/70 text-xs text-slate-600 leading-relaxed">
-        <strong className="text-slate-800 font-semibold block mb-1">For optimal scanning results:</strong>
-        <ul className="list-disc list-inside space-y-0.5 text-slate-500">
-          <li>Ensure the QR code is clearly in focus, well-lit, and not blurry.</li>
-          <li>Make sure none of the four position markers or corner squares are cut off.</li>
-        </ul>
-      </div>
-    </div>
+    </fieldset>
   );
 };

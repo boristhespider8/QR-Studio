@@ -5,9 +5,10 @@ import { copyToClipboard } from '../utils/validators';
 
 interface UseQRScannerProps {
   onActivityAdded?: (item: Omit<ActivityItem, 'id' | 'timestamp'>) => void;
+  isActive?: boolean;
 }
 
-export function useQRScanner({ onActivityAdded }: UseQRScannerProps = {}) {
+export function useQRScanner({ onActivityAdded, isActive = true }: UseQRScannerProps = {}) {
   const [status, setStatus] = useState<ScanStatus>('idle');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
@@ -26,7 +27,6 @@ export function useQRScanner({ onActivityAdded }: UseQRScannerProps = {}) {
 
   const processFile = useCallback(
     async (file: File) => {
-      // Clear previous states
       if (imagePreviewUrl) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
@@ -59,12 +59,39 @@ export function useQRScanner({ onActivityAdded }: UseQRScannerProps = {}) {
         const message =
           err instanceof Error
             ? err.message
-            : 'Failed to process QR image. Please try another image.';
+            : 'Acquisition error: QR matrix unreadable or contrast insufficient.';
         setErrorMessage(message);
       }
     },
     [imagePreviewUrl, onActivityAdded]
   );
+
+  // Global Ctrl+V clipboard paste support
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const clipboardData = e.clipboardData;
+      if (!clipboardData || !clipboardData.items) return;
+
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const item = clipboardData.items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            processFile(file);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => {
+      window.removeEventListener('paste', handlePaste);
+    };
+  }, [isActive, processFile]);
 
   const resetScanner = useCallback(() => {
     if (imagePreviewUrl) {
@@ -83,7 +110,7 @@ export function useQRScanner({ onActivityAdded }: UseQRScannerProps = {}) {
     const ok = await copyToClipboard(result.text);
     if (ok) {
       setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
+      setTimeout(() => setCopyFeedback(false), 1800);
     }
     return ok;
   }, [result]);

@@ -3,13 +3,13 @@ import { useQRScanner } from '../hooks/useQRScanner';
 import { UploadDropzone } from './UploadDropzone';
 import { ScanResult } from './ScanResult';
 import type { ActivityItem } from '../types';
-import { ScanLine } from 'lucide-react';
 
 interface ScannerPanelProps {
   onActivityAdded: (item: Omit<ActivityItem, 'id' | 'timestamp'>) => void;
+  isActive?: boolean;
 }
 
-export const ScannerPanel: React.FC<ScannerPanelProps> = ({ onActivityAdded }) => {
+export const ScannerPanel: React.FC<ScannerPanelProps> = ({ onActivityAdded, isActive = true }) => {
   const {
     status,
     selectedFile,
@@ -21,26 +21,15 @@ export const ScannerPanel: React.FC<ScannerPanelProps> = ({ onActivityAdded }) =
     resetScanner,
     handleCopyResult,
     handleOpenUrl,
-  } = useQRScanner({ onActivityAdded });
+  } = useQRScanner({ onActivityAdded, isActive });
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header Info */}
-      <div className="flex items-center justify-between pb-2">
-        <div className="flex items-center gap-2">
-          <ScanLine className="w-4 h-4 text-indigo-600" />
-          <h2 className="text-sm font-bold text-slate-900">QR Code Scanner</h2>
-        </div>
-        <span className="text-xs text-slate-400 font-medium">Decoded locally in browser</span>
-      </div>
-
-      {/* Conditional rendering based on upload state */}
+    <div className="space-y-3 p-1">
       {status === 'idle' && !selectedFile ? (
         <UploadDropzone
           onFileSelected={processFile}
           isProcessing={false}
         />
-
       ) : (
         <ScanResult
           status={status}

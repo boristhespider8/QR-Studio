@@ -6,15 +6,24 @@ import type {
   QRGenerationResult,
   QRSize,
   ActivityItem,
+  TemplateType,
 } from '../types';
-import { generateQRCodeDataUrl, downloadQRCode, copyQRCodeImageToClipboard } from '../utils/qrGenerator';
+import {
+  generateQRCodeDataUrl,
+  generateQRCodeSvg,
+  generateQRCodeAscii,
+  downloadQRCode,
+  downloadTextFile,
+  copyQRCodeImageToClipboard,
+} from '../utils/qrGenerator';
 import { validateContent, copyToClipboard } from '../utils/validators';
 
 const DEFAULT_OPTIONS: QRGeneratorOptions = {
   type: 'url',
+  template: 'url',
   content: 'https://example.com',
-  foregroundColor: '#0f172a', // Deep slate
-  backgroundColor: '#ffffff',
+  foregroundColor: '#000000', // Classic 1-bit Black
+  backgroundColor: '#FFFFFF', // Pure White
   size: 384,
   errorCorrectionLevel: 'M',
   margin: 2,
@@ -31,8 +40,8 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<boolean>(false);
   const [imageCopyFeedback, setImageCopyFeedback] = useState<boolean>(false);
+  const [asciiCopyFeedback, setAsciiCopyFeedback] = useState<boolean>(false);
 
-  // Keep ref of last logged content to avoid logging duplicates on every keystroke
   const lastLoggedContentRef = useRef<string>('');
 
   const generate = useCallback(
@@ -50,13 +59,23 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
 
       try {
         const payloadToEncode = validation.normalized;
-        const dataUrl = await generateQRCodeDataUrl({
-          ...currentOptions,
-          content: payloadToEncode,
-        });
+        const [dataUrl, svgString] = await Promise.all([
+          generateQRCodeDataUrl({
+            ...currentOptions,
+            content: payloadToEncode,
+          }),
+          generateQRCodeSvg({
+            ...currentOptions,
+            content: payloadToEncode,
+          }),
+        ]);
+
+        const asciiArt = generateQRCodeAscii(payloadToEncode, currentOptions.errorCorrectionLevel);
 
         setResult({
           dataUrl,
+          svgString,
+          asciiArt,
           content: payloadToEncode,
           size: currentOptions.size,
           errorCorrectionLevel: currentOptions.errorCorrectionLevel,
@@ -73,11 +92,12 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
               size: currentOptions.size,
               errorLevel: currentOptions.errorCorrectionLevel,
               isUrl: currentOptions.type === 'url',
+              template: currentOptions.template,
             },
           });
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Failed to generate QR Code';
+        const msg = err instanceof Error ? err.message : 'Matrix generation failure';
         setError(msg);
         setResult(null);
       } finally {
@@ -94,19 +114,18 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
         generate(options, false);
       } else {
         setResult(null);
-        setError('Please enter a link or text to generate a QR Code');
+        setError('Ready. Enter payload string to render matrix.');
       }
     }, 280);
 
     return () => clearTimeout(handler);
   }, [options, generate]);
 
-  // Explicit user trigger (e.g. clicking "Generate QR Code" button)
   const handleExplicitGenerate = () => {
     if (options.content.trim()) {
       generate(options, true);
     } else {
-      setError('Please enter a link or text to generate a QR Code');
+      setError('Payload buffer empty.');
     }
   };
 
@@ -116,13 +135,16 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
 
   const setType = (type: ContentType) => {
     setOptions((prev) => {
-      // If switching to URL and current text doesn't look like URL, reset to friendly placeholder
       let newContent = prev.content;
       if (type === 'url' && (!prev.content.includes('.') || prev.content.includes('\n'))) {
         newContent = 'https://example.com';
       }
       return { ...prev, type, content: newContent };
     });
+  };
+
+  const setTemplate = (template: TemplateType) => {
+    setOptions((prev) => ({ ...prev, template }));
   };
 
   const setForegroundColor = (foregroundColor: string) => {
@@ -153,12 +175,11 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
     });
   };
 
-  const handleDownload = () => {
+  const handleDownloadPng = () => {
     if (!result) return;
-    const cleanName = options.type === 'url' ? 'qrcode-url' : 'qrcode-text';
-    downloadQRCode(result.dataUrl, `${cleanName}-${Date.now()}.png`);
+    const stamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    downloadQRCode(result.dataUrl, `PPLQR_${stamp}.PNG`);
 
-    // Also log to activity on download if not logged yet
     if (onActivityAdded && result.content !== lastLoggedContentRef.current) {
       lastLoggedContentRef.current = result.content;
       onActivityAdded({
@@ -173,12 +194,24 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
     }
   };
 
+  const handleDownloadSvg = () => {
+    if (!result || !result.svgString) return;
+    const stamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    downloadTextFile(result.svgString, `PPLQR_${stamp}.SVG`, 'image/svg+xml');
+  };
+
+  const handleDownloadAscii = () => {
+    if (!result || !result.asciiArt) return;
+    const stamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    downloadTextFile(result.asciiArt, `PPLQR_ASCII_${stamp}.NFO`, 'text/plain');
+  };
+
   const handleCopyContent = async () => {
     if (!result) return false;
     const ok = await copyToClipboard(result.content);
     if (ok) {
       setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 2000);
+      setTimeout(() => setCopyFeedback(false), 1800);
     }
     return ok;
   };
@@ -188,7 +221,17 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
     const ok = await copyQRCodeImageToClipboard(result.dataUrl);
     if (ok) {
       setImageCopyFeedback(true);
-      setTimeout(() => setImageCopyFeedback(false), 2000);
+      setTimeout(() => setImageCopyFeedback(false), 1800);
+    }
+    return ok;
+  };
+
+  const handleCopyAscii = async () => {
+    if (!result || !result.asciiArt) return false;
+    const ok = await copyToClipboard(result.asciiArt);
+    if (ok) {
+      setAsciiCopyFeedback(true);
+      setTimeout(() => setAsciiCopyFeedback(false), 1800);
     }
     return ok;
   };
@@ -200,8 +243,10 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
     isGenerating,
     copyFeedback,
     imageCopyFeedback,
+    asciiCopyFeedback,
     setContent,
     setType,
+    setTemplate,
     setForegroundColor,
     setBackgroundColor,
     setSize,
@@ -209,8 +254,11 @@ export function useQRGenerator({ onActivityAdded }: UseQRGeneratorProps = {}) {
     setMargin,
     resetSettings,
     handleExplicitGenerate,
-    handleDownload,
+    handleDownloadPng,
+    handleDownloadSvg,
+    handleDownloadAscii,
     handleCopyContent,
     handleCopyImage,
+    handleCopyAscii,
   };
 }
